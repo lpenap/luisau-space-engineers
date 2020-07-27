@@ -24,13 +24,125 @@ namespace SpaceEngineers.Luisau.Template {
 /////////////////////////////////////////////////////////////////
 // Your code goes below this line
 
+// Logger class, defaults to INFO
+public class Logger {
+	string name;
+	int level;
+	// 0 : error
+	// 1 : warn
+	// 2 : info
+	// 3 : debug
+	// 4 : trace
+	public Logger() {
+		this.name = "";
+		this.level = 2;
+	}
+	public Logger(string name) {
+		this.name = name;
+		this.level = 2;
+	}
+	public void setLevel (int newLevel) {
+		this.level = newLevel;
+	}
+	private void writeMsg(string msg, int msgLevel) {
+		if (msgLevel >= this.level) {
+			Echo (this.name + msg);
+		}
+	}
+	public void error(string msg) {
+		this.writeMsg(msg, 0);
+	}
+	public void warn(string msg) {
+		this.writeMsg(msg, 1);
+	}
+	public void info(string msg) {
+		this.writeMsg(msg, 2);
+	}
+	public void debug(string msg) {
+		this.writeMsg(msg, 3);
+	}
+	public void trace(string msg) {
+		this.writeMsg(msg, 4);
+	}
+}
+
+public class Drill() {
+	private int currentCycle;
+	private int expectedCycles;
+	private bool isRunnig;
+	public Drill() {
+		this.currentCycle = 0;
+		this.expectedCycles = 0;
+		this.isRunnig = false;
+	}
+	public Drill(int currentCycle, int expectedCycles) {
+		this.currentCycle = currentCycle;
+		this.expectedCycles = expectedCycles;
+		if (currentCycle <= expectedCycles) {
+			this.isRunnig = true;
+		} else {
+			this.isRunnig = false;
+		}
+	}
+	public void run() {
+		if (this.isRunnig && this.expectedCycles > 0) {
+			// Running
+			this.currentCycle++;
+		}
+	}
+	public bool isRunning () {
+		return this.isRunnig;
+	}
+	public int getCurrentCycle() {
+		return this.currentCycle;
+	}
+	public int getExpectedCycles() {
+		return this.expectedCycles;
+	}
+	public void resetTo(int expectedCycles) {
+		if (expectedCycles > 0) {
+			this.currentCycle = 1;
+			this.expectedCycles = expectedCycles;
+			this.isRunnig = true;
+		}
+	}
+}
+
+Drill myDrill;
+Logger log;
 public Program() {
+	log = new Logger();
+	log.setLevel(3); // 3 : debug
+	if (Storage.Length > 0) {
+		var myVarParts = Storage.Split(";");
+		int currentCycle = int.Parse(myVarParts[0]);
+		int expectedCycles = int.Parse(myVarParts[1]);
+		myDrill = new Drill(currentCycle, expectedCycles);
+	} else {
+		myDrill = new Drill();
+	}
 }
 
 public void Save() {
+	Storage = myDrill.getCurrentCycle + ";" + myDrill.getExpectedCycles;
 }
 
 public void Main(string argument, UpdateType updateSource) {
+	if ((updateSource & (UpdateType.Update1 | UpdateType.Update10 | UpdateType.Update100)) > 0) {
+		if (myDrill.isRunnig) {
+			log.info(string.Format("Drill is running cycle {0} of {1}", myDrill.getCurrentCycle, myDrill.getExpectedCycles));
+			Runtime.UpdateFrequency = UpdateFrequency.Update100;
+		} else {
+			log.info("Drill is not Running!");
+			Runtime.UpdateFrequency = UpdateFrequency.None;
+		}
+	} else {
+		// Run by user or mod, run "argument" cycles.
+		log.info(string.Format("Going to run Drill for {0} cycles", argument));
+		myDrill.resetTo(int.Parse(argument));
+		Runtime.UpdateFrequency = UpdateFrequency.Update100;
+	}
+	myDrill.run();
 }
 
 // Your code ends above this line
