@@ -8,6 +8,8 @@
   * Install NuGet Packet Manager and C# Extension (from OmniSharp)
 * Install .net core sdk (VS Code may alert you of this after installing the C# extension)
 * Install .net framework 4.6.1 developer pack
+* Download .NET core build tools:
+  * Download [Tools for Visual Studio 2019](https://visualstudio.microsoft.com/downloads/) , this will launch the Visual Studio Installer , then select .NET core build tools *only* (.NET Core 2.1 LTS Runtime is not required)
 * Clone or download this repository
 * copy and paste the SpaceEngineers\Luisau\Template folder to a new one, i.e.: SpaceEngineers\Luisau\MyCoolScript and change the name of the program-template.cs file in there to mycoolscript.cs
 * Open VS Code, and Using *File > Open Folder* open the cloned repository root folder.
