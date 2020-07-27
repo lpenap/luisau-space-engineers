@@ -69,29 +69,27 @@ public class Logger {
 public class Drill() {
 	private int currentCycle;
 	private int expectedCycles;
-	private bool isRunnig;
 	public Drill() {
-		this.currentCycle = 0;
-		this.expectedCycles = 0;
-		this.isRunnig = false;
+		// default to run 1 cycle
+		this.currentCycle = 1;
+		this.expectedCycles = 1;
 	}
 	public Drill(int currentCycle, int expectedCycles) {
 		this.currentCycle = currentCycle;
 		this.expectedCycles = expectedCycles;
-		if (currentCycle <= expectedCycles) {
-			this.isRunnig = true;
-		} else {
-			this.isRunnig = false;
+	}
+	public bool shouldRun() {
+		bool shouldRun = false;
+		if (this.expectedCycles > 0 && (this.currentCycle <= this.expectedCycles)) {
+			shouldRun = true;
 		}
+		return shouldRun;
 	}
 	public void run() {
-		if (this.isRunnig && this.expectedCycles > 0) {
+		if (this.shouldRun()) {
 			// Running
 			this.currentCycle++;
 		}
-	}
-	public bool isRunning () {
-		return this.isRunnig;
 	}
 	public int getCurrentCycle() {
 		return this.currentCycle;
@@ -100,11 +98,8 @@ public class Drill() {
 		return this.expectedCycles;
 	}
 	public void resetTo(int expectedCycles) {
-		if (expectedCycles > 0) {
-			this.currentCycle = 1;
-			this.expectedCycles = expectedCycles;
-			this.isRunnig = true;
-		}
+		this.currentCycle = 1;
+		this.expectedCycles = expectedCycles;
 	}
 }
 
@@ -124,16 +119,18 @@ public Program() {
 }
 
 public void Save() {
-	Storage = myDrill.getCurrentCycle + ";" + myDrill.getExpectedCycles;
+	Storage = myDrill.getCurrentCycle() + ";" + myDrill.getExpectedCycles();
 }
 
 public void Main(string argument, UpdateType updateSource) {
 	if ((updateSource & (UpdateType.Update1 | UpdateType.Update10 | UpdateType.Update100)) > 0) {
-		if (myDrill.isRunnig) {
-			log.info(string.Format("Drill is running cycle {0} of {1}", myDrill.getCurrentCycle, myDrill.getExpectedCycles));
+		if (myDrill.shouldRun()) {
+			log.info(string.Format("Drill is going to run cycle {0} of {1}", myDrill.getCurrentCycle(), myDrill.getExpectedCycles() ));
+			log.debug("Slowing down update frequency to 100");
 			Runtime.UpdateFrequency = UpdateFrequency.Update100;
 		} else {
 			log.info("Drill is not Running!");
+			log.debug("Setting frequency update to none")
 			Runtime.UpdateFrequency = UpdateFrequency.None;
 		}
 	} else {
