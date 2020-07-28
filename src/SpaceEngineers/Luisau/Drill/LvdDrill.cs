@@ -17,7 +17,7 @@ using SpaceEngineers.Game.ModAPI.Ingame;
 using VRage.Game.ObjectBuilders.Definitions;
 
 // Change this namespace
-namespace SpaceEngineers.Luisau.Template {
+namespace SpaceEngineers.Luisau.LvdDrill {
     public sealed class Program : MyGridProgram {
 
         #endregion
@@ -25,59 +25,59 @@ namespace SpaceEngineers.Luisau.Template {
         // Your code goes below this line
 
 
-		////////////////////////////////////////////////////////////
-		// LVD Drill Script by Luisau
-		// https://github.com/lpenap/luisau-space-engineers
-		//
-		// This script is to manage my automated drill.
-		// I have yet to explain how to build it, so this Script
-		// is kinda useless for the rest of the world.
-		////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////
+        // LVD Drill Script by Luisau
+        // https://github.com/lpenap/luisau-space-engineers
+        //
+        // This script is to manage my automated drill.
+        // I have yet to explain how to build it, so this Script
+        // is kinda useless for the rest of the world.
+        ////////////////////////////////////////////////////////////
 
-		////////////////////////////////////////////////////////////
-		// Configuration:
-		////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////
+        // Configuration:
+        ////////////////////////////////////////////////////////////
 
-		// Top/Bottom ExtenderPrefix, there should be
-		// one Piston, Connector & Merge Block in each extender.
-		// i.e.: There should be three blocks in the top extender:
-		// "LVD TopExtender Connector",
-		// "LVD TopExtender Piston", "LVD TopExtender Merge Block"
-		var LvdTopExtenderPrefix = "LVD TopExtender ";
-		var LvdBottomExtenderPrefix = "LVD BottomExtender ";
+        // Top/Bottom ExtenderPrefix, there should be
+        // one Piston, Connector & Merge Block in each extender.
+        // i.e.: There should be three blocks in the top extender:
+        // "LVD TopExtender Connector",
+        // "LVD TopExtender Piston", "LVD TopExtender Merge Block"
+        string LvdTopExtenderPrefix = "LVD TopExtender ";
+        string LvdBottomExtenderPrefix = "LVD BottomExtender ";
 
-		// Vertical Drill Piston Group
-		// group for pistons that will extender the drills vertically.
-		var LvdPistonsGroup = "LVD Pistons";
+        // Vertical Drill Piston Group
+        // group for pistons that will extender the drills vertically.
+        string LvdPistonsGroup = "LVD Pistons";
 
-		// Group for Drills
-		var LvdDrillsGroup = "LVD Drills";
+        // Group for Drills
+        string LvdDrillsGroup = "LVD Drills";
 
-		// Group for the Welders that will build the conveyor extension
-		var LvdWeldersGroup = "LVD Welders";
+        // Group for the Welders that will build the conveyor extension
+        string LvdWeldersGroup = "LVD Welders";
 
-		// Name for the LCD Panel that will be used to print the Drill status
-		var LvdLcdStatus = "LVD Status LCD";
+        // Name for the LCD Panel that will be used to print the Drill status
+        string LvdLcdStatus = "LVD Status LCD";
 
-		////////////////////////////////////////////////////////////
-		// End of Configuration, do not modify below this line
-		////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////
+        // End of Configuration, do not modify below this line
+        ////////////////////////////////////////////////////////////
 
-		// Logger class, defaults to INFO
+        // Logger class, defaults to INFO
         public class Logger {
-        	public Logger(MyGridProgram program) {
+            public Logger(MyGridProgram program) {
                 MyProgram = program;
                 Level = 2;
             }
 
-			// 0 : error
-			// 1 : warn
-			// 2 : info
-			// 3 : debug
-			// 4 : trace
+            // 0 : error
+            // 1 : warn
+            // 2 : info
+            // 3 : debug
+            // 4 : trace
             public int Level { get; set; }
 
-			private MyGridProgram MyProgram { get; set; }
+            private MyGridProgram MyProgram { get; set; }
 
             private void WriteMsg(string msg, int msgLevel) {
                 if (msgLevel <= Level) {
@@ -91,7 +91,7 @@ namespace SpaceEngineers.Luisau.Template {
                 WriteMsg(msg, 1);
             }
             public void Info(string msg) {
-                writeMsg(msg, 2);
+                WriteMsg(msg, 2);
             }
             public void Debug(string msg) {
                 WriteMsg(msg, 3);
@@ -101,26 +101,77 @@ namespace SpaceEngineers.Luisau.Template {
             }
         }
 
+        public class LvdDrillParts {
+            public IMyPistonBase TopPistonExtender { get; set; }
+
+            public IMyPistonBase BottomPistonExtender { get; set; }
+
+            public IMyShipConnector TopConnectorExtender { get; set; }
+
+            public IMyShipConnector BottomConnectorExtender { get; set; }
+
+            public IMyShipMergeBlock TopMergeBlockExtender { get; set; }
+
+            public IMyShipMergeBlock BottomMergeBlockExtender { get; set; }
+
+            public IMyBlockGroup VerticalPistons { get; set; }
+
+            public IMyBlockGroup Welders { get; set; }
+
+            public IMyBlockGroup Drills { get; set; }
+
+            public IMyTextPanel StatusPanel { get; set; }
+
+            public MyGridProgram MyProgram { get; set; }
+            public LvdDrillParts(MyGridProgram myProgram, string LvdTopExtenderPrefix,
+                string LvdBottomExtenderPrefix, string LvdPistonsGroup,
+                string LvdDrillsGroup, string LvdWeldersGroup, string LvdLcdStatus) {
+                MyProgram = myProgram;
+
+                TopConnectorExtender = (IMyShipConnector)MyProgram.GridTerminalSystem.GetBlockWithName(LvdTopExtenderPrefix + "Connector");
+                TopMergeBlockExtender = (IMyShipMergeBlock)MyProgram.GridTerminalSystem.GetBlockWithName(LvdTopExtenderPrefix + "Merge Block");
+                TopPistonExtender = (IMyPistonBase)MyProgram.GridTerminalSystem.GetBlockWithName(LvdTopExtenderPrefix + "Piston");
+
+                BottomConnectorExtender = (IMyShipConnector)MyProgram.GridTerminalSystem.GetBlockWithName(LvdBottomExtenderPrefix + "Connector");
+                BottomMergeBlockExtender = (IMyShipMergeBlock)MyProgram.GridTerminalSystem.GetBlockWithName(LvdBottomExtenderPrefix + "Merge Block");
+                BottomPistonExtender = (IMyPistonBase)MyProgram.GridTerminalSystem.GetBlockWithName(LvdBottomExtenderPrefix + "Piston");
+
+                VerticalPistons = MyProgram.GridTerminalSystem.GetBlockGroupWithName(LvdPistonsGroup);
+                Welders = MyProgram.GridTerminalSystem.GetBlockGroupWithName(LvdWeldersGroup);
+                Drills = MyProgram.GridTerminalSystem.GetBlockGroupWithName(LvdDrillsGroup);
+
+                StatusPanel = (IMyTextPanel)MyProgram.GridTerminalSystem.GetBlockWithName(LvdLcdStatus);
+            }
+        }
+
         public class LvdDrill {
-            public LvdDrill() {
+
+
+            public LvdDrill(LvdDrillParts parts) {
                 // default to run 1 cycle
-                InitDrill(1, 1);
+                InitDrill(parts, 1, 1);
             }
 
-            public LvdDrill(int currentCycle, int expectedCycles) {
-                InitDrill(currentCycle, expectedCycles);
+            public LvdDrill(LvdDrillParts parts, int currentCycle, int expectedCycles) {
+                InitDrill(parts, currentCycle, expectedCycles);
             }
 
-			public int CurrentCycle { get; private set; }
+            public int CurrentCycle { get; private set; }
 
             public int ExpectedCycles { get; private set; }
 
-			public DateTime StartTime { get; private set; }
+            public MyGridProgram MyProgram { get; set; }
 
-            private void InitDrill(int currentCycle, int expectedCycles) {
+            public DateTime StartTime { get; private set; }
+
+            public LvdDrillParts Parts { get; private set; }
+
+            private void InitDrill(LvdDrillParts parts, int currentCycle, int expectedCycles) {
                 CurrentCycle = currentCycle;
                 ExpectedCycles = expectedCycles;
                 StartTime = System.DateTime.UtcNow;
+                MyProgram = parts.MyProgram;
+                Parts = parts;
             }
             public bool ShouldRun() {
                 bool shouldRun = false;
@@ -131,14 +182,19 @@ namespace SpaceEngineers.Luisau.Template {
             }
             public void Run() {
                 if (ShouldRun()) {
+                    CheckState();
                     // Running
-					SimulateRun(5);
+                    SimulateRun(5);
                 }
             }
 
-			private void AdvanceCycle() {
-				CurrentCycle++;
-			}
+            private void CheckState() {
+
+            }
+
+            private void AdvanceCycle() {
+                CurrentCycle++;
+            }
 
             // Simulation of Drill steps each 5 seconds to test lifecycle
             private void SimulateRun(int waitSeconds) {
@@ -146,7 +202,7 @@ namespace SpaceEngineers.Luisau.Template {
                 TimeSpan diff = currentTime - StartTime;
                 if (diff.TotalSeconds > waitSeconds) {
                     StartTime = currentTime;
-					AdvanceCycle();
+                    AdvanceCycle();
                 }
             }
 
@@ -156,9 +212,12 @@ namespace SpaceEngineers.Luisau.Template {
             }
         }
 
-        Drill myDrill;
+        LvdDrill myDrill;
         Logger log;
         public Program() {
+            LvdDrillParts parts = new LvdDrillParts(this, LvdTopExtenderPrefix,
+                 LvdBottomExtenderPrefix, LvdPistonsGroup,
+                 LvdDrillsGroup, LvdWeldersGroup, LvdLcdStatus);
             log = new Logger(this);
             log.Level = 3; // 3 : debug
             int currentCycle = 1;
@@ -169,7 +228,7 @@ namespace SpaceEngineers.Luisau.Template {
                 currentCycle = int.Parse(storageParts[0]);
                 expectedCycles = int.Parse(storageParts[1]);
             }
-            myDrill = new LvdDrill(currentCycle, expectedCycles);
+            myDrill = new LvdDrill(parts, currentCycle, expectedCycles);
             log.Debug(string.Format("Drill initialized. current cycle: {0} of {1}", myDrill.CurrentCycle, myDrill.ExpectedCycles));
         }
 
@@ -178,7 +237,7 @@ namespace SpaceEngineers.Luisau.Template {
         }
 
         public void Main(string argument, UpdateType updateSource) {
-            log.info("LVD Drill Script by Luisau");
+            log.Info("LVD Drill Script by Luisau");
             if ((updateSource & (UpdateType.Update1 | UpdateType.Update10 | UpdateType.Update100)) > 0) {
                 if (myDrill.ShouldRun()) {
                     log.Info(string.Format("Drill is going to run cycle {0} of {1}", myDrill.CurrentCycle, myDrill.ExpectedCycles));
