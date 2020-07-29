@@ -43,20 +43,25 @@ namespace SpaceEngineers.Luisau.LvdDrill {
         // i.e.: There should be three blocks in the top extender:
         // "LVD TopExtender Connector",
         // "LVD TopExtender Piston", "LVD TopExtender Merge Block"
+
         string LvdTopExtenderPrefix = "LVD TopExtender ";
         string LvdBottomExtenderPrefix = "LVD BottomExtender ";
 
         // Vertical Drill Piston Group
         // group for pistons that will extender the drills vertically.
+
         string LvdPistonsGroup = "LVD Pistons";
 
         // Group for Drills
+
         string LvdDrillsGroup = "LVD Drills";
 
         // Group for the Welders that will build the conveyor extension
+
         string LvdWeldersGroup = "LVD Welders";
 
         // Name for the LCD Panel that will be used to print the Drill status
+
         string LvdLcdStatus = "LVD Status LCD";
 
         ////////////////////////////////////////////////////////////
@@ -222,13 +227,16 @@ namespace SpaceEngineers.Luisau.LvdDrill {
             int currentCycle = 1;
             int expectedCycles = 1;
             if (Storage.Length > 0) {
-                log.Debug("Loading storage: " + Storage);
+                log.Debug("Loading storage..." + Storage);
                 var storageParts = Storage.Split(';');
                 currentCycle = int.Parse(storageParts[0]);
                 expectedCycles = int.Parse(storageParts[1]);
+            } else {
+                log.Info("Drill Initialized.");
+                log.Info("Run with number of cycles as Argument [defaults to 1]");
             }
             myDrill = new LvdDrill(parts, currentCycle, expectedCycles);
-            log.Debug(string.Format("Drill initialized. current cycle: {0} of {1}", myDrill.CurrentCycle, myDrill.ExpectedCycles));
+            log.Debug(string.Format("Current cycle: {0} of {1}", myDrill.CurrentCycle, myDrill.ExpectedCycles));
         }
 
         public void Save() {
@@ -237,6 +245,7 @@ namespace SpaceEngineers.Luisau.LvdDrill {
 
         public void Main(string argument, UpdateType updateSource) {
             log.Info("LVD Drill Script by Luisau");
+            log.Info("--------------------------");
             if ((updateSource & (UpdateType.Update1 | UpdateType.Update10 | UpdateType.Update100)) > 0) {
                 if (myDrill.ShouldRun()) {
                     log.Info(string.Format("Drill is going to run cycle {0} of {1}", myDrill.CurrentCycle, myDrill.ExpectedCycles));
