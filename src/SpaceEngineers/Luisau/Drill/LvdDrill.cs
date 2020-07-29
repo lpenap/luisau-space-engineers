@@ -146,7 +146,6 @@ namespace SpaceEngineers.Luisau.LvdDrill {
 
         public class LvdDrill {
 
-
             public LvdDrill(LvdDrillParts parts) {
                 // default to run 1 cycle
                 InitDrill(parts, 1, 1);
@@ -189,7 +188,7 @@ namespace SpaceEngineers.Luisau.LvdDrill {
             }
 
             private void CheckState() {
-
+                MyProgram.Echo("Top Connector: " + Parts.TopConnectorExtender.Status.ToString());
             }
 
             private void AdvanceCycle() {
