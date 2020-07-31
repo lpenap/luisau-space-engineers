@@ -7,6 +7,7 @@ using System.Collections.Generic;
 
 using VRageMath;
 using VRage.Game;
+using VRage.Game.Gui;
 using VRage.Collections;
 using Sandbox.ModAPI.Ingame;
 using VRage.Game.Components;
@@ -70,9 +71,12 @@ namespace SpaceEngineers.Luisau.LvdDrill {
 
         // Logger class, defaults to INFO
         public class Logger {
+            private int _latestMaxSize;
             public Logger(MyGridProgram program) {
                 MyProgram = program;
                 Level = 2;
+                LatestMaxSize = 3;
+                LatestIndex = 0;
             }
 
             // 0 : error
@@ -82,11 +86,37 @@ namespace SpaceEngineers.Luisau.LvdDrill {
             // 4 : trace
             public int Level { get; set; }
 
+            public int LatestMaxSize {
+                get {
+                    return _latestMaxSize;
+                }
+                set {
+                    _latestMaxSize = value;
+                    Latest = new string[_latestMaxSize];
+                    LatestIndex = 0;
+                }
+            }
+            public string[] Latest { get; private set; }
+
+            public int LatestIndex { get; private set; }
+
             private MyGridProgram MyProgram { get; set; }
 
             private void WriteMsg(string msg, int msgLevel) {
                 if (msgLevel <= Level) {
                     MyProgram.Echo(msg);
+                    AddToLatest(msg);
+                }
+            }
+
+            private void AddToLatest(string msg) {
+                if (LatestIndex < LatestMaxSize) {
+                    Latest[LatestIndex++] = msg;
+                } else {
+                    for (int i = 0; i < LatestIndex - 1; i++) {
+                        Latest[i] = Latest[i + 1];
+                    }
+                    Latest[LatestIndex - 1] = msg;
                 }
             }
             public void Error(string msg) {
@@ -160,6 +190,8 @@ namespace SpaceEngineers.Luisau.LvdDrill {
                 InitDrill(parts, currentCycle, expectedCycles);
             }
 
+            public Logger Log { get; set; }
+
             public int CurrentCycle { get; private set; }
 
             public int ExpectedCycles { get; private set; }
@@ -190,9 +222,34 @@ namespace SpaceEngineers.Luisau.LvdDrill {
                     // Running
                     SimulateRun(5);
                 }
+                PrintCycle();
+            }
+
+            private void PrintCycle() {
+                if (Parts.StatusPanel != null) {
+                    Parts.StatusPanel.ContentType = VRage.Game.GUI.TextPanel.ContentType.TEXT_AND_IMAGE;
+                    Parts.StatusPanel.FontSize = 3;
+                    Parts.StatusPanel.Alignment = VRage.Game.GUI.TextPanel.TextAlignment.CENTER;
+                    string status;
+                    Color fontColor;
+                    if (ShouldRun()) {
+                        status = "Running";
+                        fontColor = Color.LightGreen;
+                    } else {
+                        status = "Stopped";
+                        fontColor = Color.DarkGray;
+                    }
+                    Parts.StatusPanel.FontColor = fontColor;
+                    Parts.StatusPanel.WriteText(string.Format("Drill\n{0}\n\nCycle: {1} of {2}",
+                        status, CurrentCycle, ExpectedCycles, Log.Latest[Log.LatestIndex - 1]));
+                } else if (Log != null) {
+                    Log.Warn("No LCD Screen found to print status!");
+                }
+
             }
 
             private void CheckState() {
+
                 MyProgram.Echo("Top Connector: " + Parts.TopConnectorExtender.Status.ToString());
             }
 
@@ -236,6 +293,7 @@ namespace SpaceEngineers.Luisau.LvdDrill {
                 log.Info("Run with number of cycles as Argument [defaults to 1]");
             }
             myDrill = new LvdDrill(parts, currentCycle, expectedCycles);
+            myDrill.Log = log;
             log.Debug(string.Format("Current cycle: {0} of {1}", myDrill.CurrentCycle, myDrill.ExpectedCycles));
         }
 
