@@ -192,6 +192,8 @@ namespace SpaceEngineers.Luisau.LvdDrill {
 
             public Logger Log { get; set; }
 
+            public string CurrentState { get; private set; }
+
             public int CurrentCycle { get; private set; }
 
             public int ExpectedCycles { get; private set; }
@@ -218,14 +220,16 @@ namespace SpaceEngineers.Luisau.LvdDrill {
             }
             public void Run() {
                 if (ShouldRun()) {
-                    CheckState();
                     // Running
-                    SimulateRun(5);
+                    CheckState();
+
+                    // Simulating time 
+                    SimulateRun(2);
                 }
-                PrintCycle();
+                PrintStatus();
             }
 
-            private void PrintCycle() {
+            private void PrintStatus() {
                 if (Parts.StatusPanel != null) {
                     Parts.StatusPanel.ContentType = VRage.Game.GUI.TextPanel.ContentType.TEXT_AND_IMAGE;
                     Parts.StatusPanel.FontSize = 3;
@@ -245,12 +249,98 @@ namespace SpaceEngineers.Luisau.LvdDrill {
                 } else if (Log != null) {
                     Log.Warn("No LCD Screen found to print status!");
                 }
-
             }
 
             private void CheckState() {
-
                 MyProgram.Echo("Top Connector: " + Parts.TopConnectorExtender.Status.ToString());
+                string drillStatus = GetPartStatusString();
+                switch (drillStatus) {
+                    case "ccccccd":
+                        CurrentState = "Standing By";
+                        break;
+                    case "cccddyd":
+                        CurrentState = "Retracting Bottom";
+                        break;
+                    case "cccdddd":
+                    case "cccdddx":
+                        CurrentState = "Drilling";
+                        break;
+                    case "cccdddc":
+                    case "cccddxc":
+                    case "cccdccc":
+                    case "ccccccc":
+                        CurrentState = "Extending Bottom";
+                        break;
+                    case "ddycccc":
+                    case "dddcccc":
+                    case "dddcccy":
+                        CurrentState = "Retracting Top";
+                        break;
+                    case "dddcccd":
+                        CurrentState = "Extending Top";
+                        break;
+                    case "dddxcccd":
+                        CurrentState = "Extending Top";
+                        break;
+                    case "dcccccd":
+                        CurrentState = "Extending Top";
+                        break;
+                    default:
+                        CurrentState = "ERROR:" + drillStatus;
+                        break;
+                }
+            }
+
+            private string GetPartStatusString() {
+                string drillStatus = Parts.TopConnectorExtender.Status.Equals(MyShipConnectorStatus.Connected) ? "c" : "d";
+                drillStatus += Parts.TopMergeBlockExtender.IsConnected ? "c" : "d";
+                drillStatus += GetPistonStatus(Parts.TopPistonExtender);
+                drillStatus += Parts.BottomConnectorExtender.Status.Equals(MyShipConnectorStatus.Connected) ? "c" : "d";
+                drillStatus += Parts.BottomMergeBlockExtender.IsConnected ? "c" : "d";
+                drillStatus += GetPistonStatus(Parts.BottomPistonExtender);
+                drillStatus += GetPistonGroupStatus(Parts.VerticalPistons);
+                return drillStatus;
+            }
+
+            private string GetPistonGroupStatus(IMyBlockGroup pistons) {
+                string status = "R";
+                bool extended = true;
+                bool retracted = true;
+                List<IMyPistonBase> pistonList = new List<IMyPistonBase>();
+                pistons.GetBlocksOfType<IMyPistonBase>(pistonList);
+                for (int i = 0; i < pistonList.Count; i++) {
+                    if (pistonList[i].Status.Equals(PistonStatus.Extending)) {
+                        status = "x";
+                        break;
+                    }
+                    if (pistonList[i].Status.Equals(PistonStatus.Retracting)) {
+                        status = "y";
+                        break;
+                    }
+                    extended = extended && pistonList[i].Status.Equals(PistonStatus.Extended);
+                    retracted = retracted && pistonList[i].Status.Equals(PistonStatus.Retracted);
+                }
+                status = extended ? "c" : (retracted ? "d" : status);
+                return status;
+            }
+
+            private string GetPistonStatus(IMyPistonBase piston) {
+                string status = "R";
+                switch (piston.Status) {
+                    case PistonStatus.Extended:
+                        status = "c";
+                        break;
+                    case PistonStatus.Retracted:
+                        status = "d";
+                        break;
+                    case PistonStatus.Extending:
+                        status = "x";
+                        break;
+                    case PistonStatus.Retracting:
+                        status = "y";
+                        break;
+                }
+                return status;
             }
 
             private void AdvanceCycle() {
