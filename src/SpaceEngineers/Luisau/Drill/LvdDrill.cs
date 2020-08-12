@@ -277,11 +277,7 @@ namespace SpaceEngineers.Luisau.LvdDrill {
                         CurrentState = "Retracting Top";
                         break;
                     case "dddcccd":
-                        CurrentState = "Extending Top";
-                        break;
                     case "dddxcccd":
-                        CurrentState = "Extending Top";
-                        break;
                     case "dcccccd":
                         CurrentState = "Extending Top";
                         break;
