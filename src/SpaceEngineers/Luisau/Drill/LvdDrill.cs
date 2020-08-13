@@ -223,7 +223,7 @@ namespace SpaceEngineers.Luisau.LvdDrill {
                     // Running
                     CheckState();
 
-                    // Simulating time 
+                    // Simulating time
                     SimulateRun(2);
                 }
                 PrintStatus();
@@ -244,8 +244,8 @@ namespace SpaceEngineers.Luisau.LvdDrill {
                         fontColor = Color.DarkGray;
                     }
                     Parts.StatusPanel.FontColor = fontColor;
-                    Parts.StatusPanel.WriteText(string.Format("Drill\n{0}\n\nCycle: {1} of {2}",
-                        status, CurrentCycle, ExpectedCycles, Log.Latest[Log.LatestIndex - 1]));
+                    Parts.StatusPanel.WriteText(string.Format("Drill\n{0}\n{1}\nCycle: {2} of {3}",
+                        status, CurrentState, CurrentCycle, ExpectedCycles, Log.Latest[Log.LatestIndex - 1]));
                 } else if (Log != null) {
                     Log.Warn("No LCD Screen found to print status!");
                 }
