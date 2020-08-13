@@ -224,7 +224,7 @@ namespace SpaceEngineers.Luisau.LvdDrill {
                     CheckState();
 
                     // Simulating time
-                    SimulateRun(2);
+                    //SimulateRun(2);
                 }
                 PrintStatus();
             }
@@ -259,10 +259,10 @@ namespace SpaceEngineers.Luisau.LvdDrill {
 						// bottom mb off
 						// bottom conn disconn
 						// bottom piston retract
-						CurrentState = "Standing By";
+						CurrentState = "Retracting Lower Arm";
                         break;
                     case "cccddyd":
-                        CurrentState = "Retracting Bottom";
+                        CurrentState = "Retracting Lower Arm";
                         break;
                     case "cccdddd":
 						// weld on
@@ -278,42 +278,43 @@ namespace SpaceEngineers.Luisau.LvdDrill {
 						// weld off
 						// bottom mb on
 						// bottom piston extend
-						CurrentState = "Extending Bottom";
+						CurrentState = "Extending Lower Arm";
 						break;
                     case "cccddxc":
-						CurrentState = "Extending Bottom";
+						CurrentState = "Extending Lower Arm";
 						break;
                     case "cccdccc":
 						// bottom conn connect
-						CurrentState = "Extending Bottom";
+						CurrentState = "Extending Lower Arm";
 						break;
                     case "ccccccc":
 						// top mb off
 						// top conn disconnect
 						// top piston retract
-                        CurrentState = "Retracting Top";
+                        CurrentState = "Retracting Top Arm";
                         break;
                     case "ddycccc":
-						CurrentState = "Retracting Top";
+						CurrentState = "Retracting Top Arm";
 						break;
                     case "dddcccc":
 						// v piston retract
-						CurrentState = "Retracting Top";
+						CurrentState = "Retracting Drill";
 						break;
                     case "dddcccy":
-                        CurrentState = "Retracting Top";
+                        CurrentState = "Retracting Drill";
                         break;
                     case "dddcccd":
 						// top mb on
 						// top piston extend
-						CurrentState = "Extending Top";
+						CurrentState = "Extending Top Arm";
 						break;
                     case "dddxcccd":
-						CurrentState = "Extending Top";
+						CurrentState = "Extending Top Arm";
 						break;
                     case "dcccccd":
 						// top conn connect
                         CurrentState = "Standing By";
+						AdvanceCycle();
                         break;
                     default:
                         CurrentState = "ERROR:" + drillStatus;
