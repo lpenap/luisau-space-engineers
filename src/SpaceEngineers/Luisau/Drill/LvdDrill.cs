@@ -204,12 +204,15 @@ namespace SpaceEngineers.Luisau.LvdDrill {
 
             public LvdDrillParts Parts { get; private set; }
 
+            private bool ReachedEndOfCycle { get; set; }
+
             private void InitDrill(LvdDrillParts parts, int currentCycle, int expectedCycles) {
                 CurrentCycle = currentCycle;
                 ExpectedCycles = expectedCycles;
                 StartTime = System.DateTime.UtcNow;
                 MyProgram = parts.MyProgram;
                 Parts = parts;
+                ReachedEndOfCycle = false;
             }
             public bool ShouldRun() {
                 bool shouldRun = false;
@@ -232,7 +235,7 @@ namespace SpaceEngineers.Luisau.LvdDrill {
             private void PrintStatus() {
                 if (Parts.StatusPanel != null) {
                     Parts.StatusPanel.ContentType = VRage.Game.GUI.TextPanel.ContentType.TEXT_AND_IMAGE;
-                    Parts.StatusPanel.FontSize = 3;
+                    Parts.StatusPanel.FontSize = 2;
                     Parts.StatusPanel.Alignment = VRage.Game.GUI.TextPanel.TextAlignment.CENTER;
                     string status;
                     Color fontColor;
@@ -260,6 +263,7 @@ namespace SpaceEngineers.Luisau.LvdDrill {
 						// bottom conn disconn
 						// bottom piston retract
 						CurrentState = "Retracting Lower Arm";
+                        ReachedEndOfCycle = false;
                         break;
                     case "cccddyd":
                         CurrentState = "Retracting Lower Arm";
@@ -308,51 +312,74 @@ namespace SpaceEngineers.Luisau.LvdDrill {
 						// top piston extend
 						CurrentState = "Extending Top Arm";
 						break;
-                    case "dddxcccd":
+                    case "ddxcccd":
 						CurrentState = "Extending Top Arm";
 						break;
                     case "dcccccd":
 						// top conn connect
                         CurrentState = "Standing By";
-						AdvanceCycle();
+                        if (!ReachedEndOfCycle) {
+						    AdvanceCycle();
+                            ReachedEndOfCycle = true;
+                        }
                         break;
                     default:
                         CurrentState = "ERROR:" + drillStatus;
                         break;
                 }
+                CurrentState = CurrentState + "\n" + drillStatus;
             }
 
             private string GetPartStatusString() {
-                string drillStatus = Parts.TopConnectorExtender.Status.Equals(MyShipConnectorStatus.Connected) ? "c" : "d";
-                drillStatus += Parts.TopMergeBlockExtender.IsConnected ? "c" : "d";
+                string drillStatus = "";
+                if (Parts.TopConnectorExtender != null) {
+                    drillStatus += Parts.TopConnectorExtender.Status.Equals(MyShipConnectorStatus.Connected) ? "c" : "d";
+                } else {
+                    drillStatus += "R";
+                }
+                if (Parts.TopMergeBlockExtender != null) {
+                    drillStatus += Parts.TopMergeBlockExtender.IsConnected ? "c" : "d";
+                } else {
+                    drillStatus += "R";
+                }
                 drillStatus += GetPistonStatus(Parts.TopPistonExtender);
-                drillStatus += Parts.BottomConnectorExtender.Status.Equals(MyShipConnectorStatus.Connected) ? "c" : "d";
-                drillStatus += Parts.BottomMergeBlockExtender.IsConnected ? "c" : "d";
+                if (Parts.BottomConnectorExtender != null) {
+                    drillStatus += Parts.BottomConnectorExtender.Status.Equals(MyShipConnectorStatus.Connected) ? "c" : "d";
+                } else {
+                    drillStatus += "R";
+                }
+                if (Parts.BottomMergeBlockExtender != null) {
+                    drillStatus += Parts.BottomMergeBlockExtender.IsConnected ? "c" : "d";
+                } else {
+                    drillStatus += "R";
+                }
                 drillStatus += GetPistonStatus(Parts.BottomPistonExtender);
                 drillStatus += GetPistonGroupStatus(Parts.VerticalPistons);
                 return drillStatus;
             }
 
             private string GetPistonGroupStatus(IMyBlockGroup pistons) {
-                string status = "R";
                 bool extended = true;
                 bool retracted = true;
                 List<IMyPistonBase> pistonList = new List<IMyPistonBase>();
                 pistons.GetBlocksOfType<IMyPistonBase>(pistonList);
                 for (int i = 0; i < pistonList.Count; i++) {
                     if (pistonList[i].Status.Equals(PistonStatus.Extending)) {
-                        status = "x";
-                        break;
+                        return "x";
                     }
                     if (pistonList[i].Status.Equals(PistonStatus.Retracting)) {
-                        status = "y";
-                        break;
+                        return "y";
                     }
                     extended = extended && pistonList[i].Status.Equals(PistonStatus.Extended);
                     retracted = retracted && pistonList[i].Status.Equals(PistonStatus.Retracted);
                 }
-                status = extended ? "c" : (retracted ? "d" : status);
-                return status;
+                if (extended) {
+                    return "c";
+                }
+                if (retracted) {
+                    return "d";
+                }
+                return "R";
             }
 
             private string GetPistonStatus(IMyPistonBase piston) {
