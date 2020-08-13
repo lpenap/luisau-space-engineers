@@ -256,30 +256,64 @@ namespace SpaceEngineers.Luisau.LvdDrill {
                 string drillStatus = GetPartStatusString();
                 switch (drillStatus) {
                     case "ccccccd":
-                        CurrentState = "Standing By";
+						// bottom mb off
+						// bottom conn disconn
+						// bottom piston retract
+						CurrentState = "Standing By";
                         break;
                     case "cccddyd":
                         CurrentState = "Retracting Bottom";
                         break;
                     case "cccdddd":
+						// weld on
+						// drills on
+						// v piston extend
+						CurrentState = "Drilling";
+						break;
                     case "cccdddx":
                         CurrentState = "Drilling";
                         break;
                     case "cccdddc":
+						// drills off
+						// weld off
+						// bottom mb on
+						// bottom piston extend
+						CurrentState = "Extending Bottom";
+						break;
                     case "cccddxc":
+						CurrentState = "Extending Bottom";
+						break;
                     case "cccdccc":
+						// bottom conn connect
+						CurrentState = "Extending Bottom";
+						break;
                     case "ccccccc":
-                        CurrentState = "Extending Bottom";
+						// top mb off
+						// top conn disconnect
+						// top piston retract
+                        CurrentState = "Retracting Top";
                         break;
                     case "ddycccc":
+						CurrentState = "Retracting Top";
+						break;
                     case "dddcccc":
+						// v piston retract
+						CurrentState = "Retracting Top";
+						break;
                     case "dddcccy":
                         CurrentState = "Retracting Top";
                         break;
                     case "dddcccd":
+						// top mb on
+						// top piston extend
+						CurrentState = "Extending Top";
+						break;
                     case "dddxcccd":
+						CurrentState = "Extending Top";
+						break;
                     case "dcccccd":
-                        CurrentState = "Extending Top";
+						// top conn connect
+                        CurrentState = "Standing By";
                         break;
                     default:
                         CurrentState = "ERROR:" + drillStatus;
