@@ -180,7 +180,6 @@ namespace SpaceEngineers.Luisau.LvdDrill {
         }
 
         public class LvdDrill {
-
             public LvdDrill(LvdDrillParts parts) {
                 // default to run 1 cycle
                 InitDrill(parts, 1, 1);
@@ -359,45 +358,55 @@ namespace SpaceEngineers.Luisau.LvdDrill {
             }
 
             private string GetPistonGroupStatus(IMyBlockGroup pistons) {
-                bool extended = true;
-                bool retracted = true;
-                List<IMyPistonBase> pistonList = new List<IMyPistonBase>();
-                pistons.GetBlocksOfType<IMyPistonBase>(pistonList);
-                for (int i = 0; i < pistonList.Count; i++) {
-                    if (pistonList[i].Status.Equals(PistonStatus.Extending)) {
-                        return "x";
-                    }
-                    if (pistonList[i].Status.Equals(PistonStatus.Retracting)) {
-                        return "y";
-                    }
-                    extended = extended && pistonList[i].Status.Equals(PistonStatus.Extended);
-                    retracted = retracted && pistonList[i].Status.Equals(PistonStatus.Retracted);
-                }
-                if (extended) {
-                    return "c";
-                }
-                if (retracted) {
-                    return "d";
-                }
-                return "R";
+             	int extended = 0
+                int retracted = 0;
+				string groupStatus = "R";
+				if (pistons != null) {
+                	List<IMyPistonBase> pistonList = new List<IMyPistonBase>();
+                	pistons.GetBlocksOfType<IMyPistonBase>(pistonList);
+                	for (int i = 0; i < pistonList.Count; i++) {
+						switch (pistonList[i].Status) {
+                    		case PistonStatus.Extending:
+                        		groupStatus = "x";
+								break;
+                    		case PistonStatus.Retracting:
+                        		groupStatus = "y";
+								break;
+							case PistonStatus.Extended:
+								extended++;
+								break;
+							case PistonStatus.Retracted:
+								retracted++;
+								break;
+						}
+                	}
+					if ((extended > 0) && (extended == pistonList.Count)) {
+						groupStatus = "c";
+					} else if ((retracted > 0) && (retracted == pistonList.Count)) {
+						groupStatus = "d";
+					}
+				}
+                return groupStatus;
             }
 
             private string GetPistonStatus(IMyPistonBase piston) {
                 string status = "R";
-                switch (piston.Status) {
-                    case PistonStatus.Extended:
-                        status = "c";
-                        break;
-                    case PistonStatus.Retracted:
-                        status = "d";
-                        break;
-                    case PistonStatus.Extending:
-                        status = "x";
-                        break;
-                    case PistonStatus.Retracting:
-                        status = "y";
-                        break;
-                }
+				if (piston != null) {
+                	switch (piston.Status) {
+                    	case PistonStatus.Extended:
+                        	status = "c";
+                        	break;
+                    	case PistonStatus.Retracted:
+                        	status = "d";
+                        	break;
+                    	case PistonStatus.Extending:
+                        	status = "x";
+                        	break;
+                    	case PistonStatus.Retracting:
+                        	status = "y";
+                        	break;
+                	}
+				}
                 return status;
             }
 
