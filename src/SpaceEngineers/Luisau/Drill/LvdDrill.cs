@@ -254,81 +254,89 @@ namespace SpaceEngineers.Luisau.LvdDrill {
             }
 
             private void CheckState() {
-                MyProgram.Echo("Top Connector: " + Parts.TopConnectorExtender.Status.ToString());
                 string drillStatus = GetPartStatusString();
                 switch (drillStatus) {
                     case "ccccccd":
-						// bottom mb off
-						// bottom conn disconn
-						// bottom piston retract
-						CurrentState = "Retracting Lower Arm";
+                        Parts.BottomMergeBlockExtender.ApplyAction("OnOff_Off");
+                        Parts.BottomConnectorExtender.Disconnect();
+                        Parts.BottomPistonExtender.Retract();
+                        CurrentState = "Retracting Lower Arm";
                         ReachedEndOfCycle = false;
                         break;
                     case "cccddyd":
                         CurrentState = "Retracting Lower Arm";
                         break;
                     case "cccdddd":
-						// weld on
-						// drills on
-						// v piston extend
-						CurrentState = "Drilling";
-						break;
+                        ApplyActionToGroup(Parts.Welders, "OnOff_On");
+                        ApplyActionToGroup(Parts.Drills, "OnOff_On");
+                        ApplyActionToGroup(Parts.VerticalPistons, "Extend");
+                        CurrentState = "Drilling";
+                        break;
                     case "cccdddx":
                         CurrentState = "Drilling";
                         break;
                     case "cccdddc":
-						// drills off
-						// weld off
-						// bottom mb on
-						// bottom piston extend
-						CurrentState = "Extending Lower Arm";
-						break;
+                        ApplyActionToGroup(Parts.Welders, "OnOff_Off");
+                        ApplyActionToGroup(Parts.Drills, "OnOff_Off");
+                        Parts.BottomMergeBlockExtender.ApplyAction("OnOff_On");
+                        Parts.BottomPistonExtender.Extend();
+                        CurrentState = "Extending Lower Arm";
+                        break;
                     case "cccddxc":
-						CurrentState = "Extending Lower Arm";
-						break;
+                        CurrentState = "Extending Lower Arm";
+                        break;
                     case "cccdccc":
-						// bottom conn connect
-						CurrentState = "Extending Lower Arm";
-						break;
+                        Parts.BottomConnectorExtender.Connect();
+                        CurrentState = "Extending Lower Arm";
+                        break;
                     case "ccccccc":
-						// top mb off
-						// top conn disconnect
-						// top piston retract
+                        Parts.TopMergeBlockExtender.ApplyAction("OnOff_Off");
+                        Parts.TopConnectorExtender.Disconnect();
+                        Parts.TopPistonExtender.Retract();
                         CurrentState = "Retracting Top Arm";
                         break;
                     case "ddycccc":
-						CurrentState = "Retracting Top Arm";
-						break;
+                        CurrentState = "Retracting Top Arm";
+                        break;
                     case "dddcccc":
-						// v piston retract
-						CurrentState = "Retracting Drill";
-						break;
+                        ApplyActionToGroup(Parts.VerticalPistons, "Retract");
+                        CurrentState = "Retracting Drill";
+                        break;
                     case "dddcccy":
                         CurrentState = "Retracting Drill";
                         break;
                     case "dddcccd":
-						// top mb on
-						// top piston extend
-						CurrentState = "Extending Top Arm";
-						break;
+                        Parts.TopMergeBlockExtender.ApplyAction("OnOff_On");
+                        Parts.TopPistonExtender.Extend();
+                        CurrentState = "Extending Top Arm";
+                        break;
                     case "ddxcccd":
-						CurrentState = "Extending Top Arm";
-						break;
+                        CurrentState = "Extending Top Arm";
+                        break;
                     case "dcccccd":
-						// top conn connect
+                        Parts.TopConnectorExtender.Connect();
                         CurrentState = "Standing By";
                         if (!ReachedEndOfCycle) {
-						    AdvanceCycle();
+                            AdvanceCycle();
                             ReachedEndOfCycle = true;
                         }
                         break;
                     default:
                         CurrentState = "ERROR:" + drillStatus;
+                        MyProgram.Echo("ERROR: " + drillStatus);
                         break;
                 }
+                MyProgram.Echo("State: " + CurrentState + "\n" + drillStatus);
                 CurrentState = CurrentState + "\n" + drillStatus;
             }
 
+            private void ApplyActionToGroup(IMyBlockGroup group, string action) {
+                List<IMyTerminalBlock> blocks = new List<IMyTerminalBlock>();
+                group.GetBlocks(blocks);
+                for (int i = 0; i < blocks.Count; i++) {
+                    blocks[i].ApplyAction(action);
+                }
+            }
             private string GetPartStatusString() {
                 string drillStatus = "";
                 if (Parts.TopConnectorExtender != null) {
@@ -358,55 +366,55 @@ namespace SpaceEngineers.Luisau.LvdDrill {
             }
 
             private string GetPistonGroupStatus(IMyBlockGroup pistons) {
-             	int extended = 0
+                int extended = 0;
                 int retracted = 0;
-				string groupStatus = "R";
-				if (pistons != null) {
-                	List<IMyPistonBase> pistonList = new List<IMyPistonBase>();
-                	pistons.GetBlocksOfType<IMyPistonBase>(pistonList);
-                	for (int i = 0; i < pistonList.Count; i++) {
-						switch (pistonList[i].Status) {
-                    		case PistonStatus.Extending:
-                        		groupStatus = "x";
-								break;
-                    		case PistonStatus.Retracting:
-                        		groupStatus = "y";
-								break;
-							case PistonStatus.Extended:
-								extended++;
-								break;
-							case PistonStatus.Retracted:
-								retracted++;
-								break;
-						}
-                	}
-					if ((extended > 0) && (extended == pistonList.Count)) {
-						groupStatus = "c";
-					} else if ((retracted > 0) && (retracted == pistonList.Count)) {
-						groupStatus = "d";
-					}
-				}
+                string groupStatus = "R";
+                if (pistons != null) {
+                    List<IMyPistonBase> pistonList = new List<IMyPistonBase>();
+                    pistons.GetBlocksOfType<IMyPistonBase>(pistonList);
+                    for (int i = 0; i < pistonList.Count; i++) {
+                        switch (pistonList[i].Status) {
+                            case PistonStatus.Extending:
+                                groupStatus = "x";
+                                break;
+                            case PistonStatus.Retracting:
+                                groupStatus = "y";
+                                break;
+                            case PistonStatus.Extended:
+                                extended++;
+                                break;
+                            case PistonStatus.Retracted:
+                                retracted++;
+                                break;
+                        }
+                    }
+                    if ((extended > 0) && (extended == pistonList.Count)) {
+                        groupStatus = "c";
+                    } else if ((retracted > 0) && (retracted == pistonList.Count)) {
+                        groupStatus = "d";
+                    }
+                }
                 return groupStatus;
             }
 
             private string GetPistonStatus(IMyPistonBase piston) {
                 string status = "R";
-				if (piston != null) {
-                	switch (piston.Status) {
-                    	case PistonStatus.Extended:
-                        	status = "c";
-                        	break;
-                    	case PistonStatus.Retracted:
-                        	status = "d";
-                        	break;
-                    	case PistonStatus.Extending:
-                        	status = "x";
-                        	break;
-                    	case PistonStatus.Retracting:
-                        	status = "y";
-                        	break;
-                	}
-				}
+                if (piston != null) {
+                    switch (piston.Status) {
+                        case PistonStatus.Extended:
+                            status = "c";
+                            break;
+                        case PistonStatus.Retracted:
+                            status = "d";
+                            break;
+                        case PistonStatus.Extending:
+                            status = "x";
+                            break;
+                        case PistonStatus.Retracting:
+                            status = "y";
+                            break;
+                    }
+                }
                 return status;
             }
 
