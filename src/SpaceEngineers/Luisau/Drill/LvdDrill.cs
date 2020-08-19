@@ -258,10 +258,16 @@ namespace SpaceEngineers.Luisau.LvdDrill {
                 switch (drillStatus) {
                     case "ccccccd":
                         Parts.BottomMergeBlockExtender.ApplyAction("OnOff_Off");
+						CurrentState = "Disconnecting Lower Arm";
+                        ReachedEndOfCycle = false;
+                        break;
+					case "ccccdcd":
                         Parts.BottomConnectorExtender.Disconnect();
+						CurrentState = "Disconnecting Lower Arm";
+                        break;
+					case "cccddcd":
                         Parts.BottomPistonExtender.Retract();
                         CurrentState = "Retracting Lower Arm";
-                        ReachedEndOfCycle = false;
                         break;
                     case "cccddyd":
                         CurrentState = "Retracting Lower Arm";
@@ -287,11 +293,17 @@ namespace SpaceEngineers.Luisau.LvdDrill {
                         break;
                     case "cccdccc":
                         Parts.BottomConnectorExtender.Connect();
-                        CurrentState = "Extending Lower Arm";
+                        CurrentState = "Connecting Lower Arm";
                         break;
                     case "ccccccc":
                         Parts.TopMergeBlockExtender.ApplyAction("OnOff_Off");
+						CurrentState = "Disconnecting Top Arm";
+						break;
+					case "cdccccc":
                         Parts.TopConnectorExtender.Disconnect();
+						CurrentState = "Disconnecting Top Arm";
+						break;
+					case "ddccccc":
                         Parts.TopPistonExtender.Retract();
                         CurrentState = "Retracting Top Arm";
                         break;
